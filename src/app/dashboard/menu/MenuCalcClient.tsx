@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { NativeSelect } from "@/components/ui/native-select";
 
 type MenuItem = {
   id: string;
@@ -174,46 +175,49 @@ async function calculateCosts() {
   }, [menuItems, portionQty, portionUnit]);
 
   return (
-    <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-semibold">Menu Costing</h1>
-      <div className="flex items-center justify-between gap-3">
-        <p className="text-sm text-muted-foreground">
-          Restaurant: {restaurantId || "unknown"}
-        </p>
+    <div className="p-6 py-10 space-y-8 max-w-5xl mx-auto">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="space-y-1">
+          <h1 className="text-2xl font-semibold tracking-tight">Menu costing</h1>
+          <p className="text-sm text-muted-foreground">
+            Live cost, margin, and portion pricing for every menu item.
+          </p>
+        </div>
         <RestaurantNav restaurantId={restaurantId} />
       </div>
 
       {/* Portion controls */}
       <Card>
         <CardHeader>
-          <CardTitle>Portion Calculation</CardTitle>
+          <CardTitle>Portion calculation</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex gap-4 items-end">
-            <div>
-              <Label htmlFor="portionQty">Portion Quantity</Label>
+          <div className="flex flex-wrap gap-4 items-end">
+            <div className="space-y-1.5">
+              <Label htmlFor="portionQty">Portion quantity</Label>
               <Input
                 id="portionQty"
                 type="number"
                 value={portionQty}
                 onChange={(e) => setPortionQty(e.target.value)}
                 placeholder="1"
+                className="w-32"
               />
             </div>
-            <div>
+            <div className="space-y-1.5">
               <Label htmlFor="portionUnit">Unit</Label>
-              <select
+              <NativeSelect
                 id="portionUnit"
-                className="w-full border rounded px-3 py-2 bg-secondary text-secondary-foreground"
                 value={portionUnit}
                 onChange={(e) => setPortionUnit(e.target.value)}
+                className="w-28"
               >
                 {["PCS", "G", "KG", "ML", "L", "CUP", "TBSP", "TSP"].map((unit) => (
                   <option key={unit} value={unit}>
                     {unit}
                   </option>
                 ))}
-              </select>
+              </NativeSelect>
             </div>
             <Button onClick={calculateCosts}>Recalculate</Button>
           </div>
@@ -236,33 +240,32 @@ async function calculateCosts() {
               onSubmit={createMenuItem}
               className="grid grid-cols-1 md:grid-cols-4 gap-3 items-end mb-4"
             >
-              <div>
-                <Label htmlFor="menuItemName">Menu Item Name</Label>
+              <div className="space-y-1.5">
+                <Label htmlFor="menuItemName">Menu item name</Label>
                 <Input
                   id="menuItemName"
                   value={newMenuItemName}
                   onChange={(e) => setNewMenuItemName(e.target.value)}
-                  placeholder="e.g., Margherita Pizza"
+                  placeholder="e.g. Margherita Pizza"
                 />
               </div>
-              <div>
+              <div className="space-y-1.5">
                 <Label htmlFor="menuItemRecipe">Recipe</Label>
-                <select
+                <NativeSelect
                   id="menuItemRecipe"
-                  className="w-full border rounded px-3 py-2 bg-secondary text-secondary-foreground"
                   value={newMenuItemRecipeId}
                   onChange={(e) => setNewMenuItemRecipeId(e.target.value)}
                 >
-                  <option value="">Select Recipe</option>
+                  <option value="">Select recipe…</option>
                   {recipes.map((recipe) => (
                     <option key={recipe.id} value={recipe.id}>
                       {recipe.name}
                     </option>
                   ))}
-                </select>
+                </NativeSelect>
               </div>
-              <div>
-                <Label htmlFor="menuItemPrice">Selling Price (₹)</Label>
+              <div className="space-y-1.5">
+                <Label htmlFor="menuItemPrice">Selling price (₹)</Label>
                 <Input
                   id="menuItemPrice"
                   type="number"
@@ -277,16 +280,19 @@ async function calculateCosts() {
           )}
 
           {loading ? (
-            <p>Loading menu items...</p>
+            <p className="py-6 text-center text-sm text-muted-foreground">Loading menu items…</p>
           ) : menuItems.length === 0 ? (
-            <p className="text-muted-foreground">No menu items found. Create one above.</p>
+            <p className="py-6 text-center text-sm text-muted-foreground">No menu items yet. Create one above.</p>
           ) : (
             <div className="space-y-4">
               {menuItems.map((menuItem) => {
                  const costing = costingResults[menuItem.id];
                   if (costing?.error) {
                     return (
-                      <div key={menuItem.id} style={{ color: "red" }}>
+                      <div
+                        key={menuItem.id}
+                        className="rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+                      >
                         Error calculating cost: {costing.error}
                       </div>
                     );

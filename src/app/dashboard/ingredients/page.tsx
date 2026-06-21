@@ -1,6 +1,21 @@
 "use client";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { RestaurantNav } from "@/components/restaurant-nav";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
+
+const UNITS = ["G", "KG", "ML", "L", "PCS", "TBSP", "TSP", "CUP"];
 
 type Ingredient = {
     id: string;
@@ -61,66 +76,85 @@ export default function IngredientsPage() {
     }
 
     return (
-        <div className="p-6 space-y-6">
-            <h1 className="text-2xl font-semibold">Ingredients</h1>
-            <div className="flex items-center justify-between gap-3">
-                <p className="text-sm text-muted-foreground">Restaurant: {restaurantId || 'unknown'}</p>
+        <div className="p-6 py-10 space-y-8 max-w-6xl mx-auto">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="space-y-1">
+                    <h1 className="text-2xl font-semibold tracking-tight">Ingredients</h1>
+                    <p className="text-sm text-muted-foreground">
+                        Pack sizes, costs, and wastage for this restaurant.
+                    </p>
+                </div>
                 <RestaurantNav restaurantId={restaurantId} />
             </div>
 
-            <form onSubmit={onCreate} className="grid grid-cols-1 md:grid-cols-6 gap-3 items-end">
-                <div>
-                    <label className="block text-sm mb-1">Name</label>
-                    <input className="w-full border rounded px-3 py-2 bg-secondary text-secondary-foreground" value={name} onChange={(e) => setName(e.target.value)} />
-                </div>
-                <div>
-                    <label className="block text-sm mb-1">Pack Qty</label>
-                    <input type="number" className="w-full border rounded px-3 py-2 bg-secondary text-secondary-foreground" value={packQuantity} onChange={(e) => setPackQuantity(parseFloat(e.target.value))} />
-                </div>
-                <div>
-                    <label className="block text-sm mb-1">Unit</label>
-                    <select className="w-full border rounded px-3 py-2 bg-secondary text-secondary-foreground" value={packUnit} onChange={(e) => setPackUnit(e.target.value)}>
-                        {['G', 'KG', 'ML', 'L', 'PCS', 'TBSP', 'TSP', 'CUP'].map(u => <option key={u} value={u}>{u}</option>)}
-                    </select>
-                </div>
-                <div>
-                    <label className="block text-sm mb-1">Pack Cost</label>
-                    <input type="number" className="w-full border rounded px-3 py-2 bg-secondary text-secondary-foreground" value={packCost} onChange={(e) => setPackCost(parseFloat(e.target.value))} />
-                </div>
-                <div>
-                    <label className="block text-sm mb-1">Wastage %</label>
-                    <input type="number" className="w-full border rounded px-3 py-2 bg-secondary text-secondary-foreground" value={wastagePct} onChange={(e) => setWastagePct(parseFloat(e.target.value))} />
-                </div>
-                <button className="bg-primary text-primary-foreground px-4 py-2 rounded" disabled={loading}>
-                    {loading ? "Saving..." : "Add Ingredient"}
-                </button>
-            </form>
+            <Card>
+                <CardHeader>
+                    <CardTitle>Add ingredient</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <form onSubmit={onCreate} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 items-end">
+                        <div className="space-y-1.5 lg:col-span-2">
+                            <Label htmlFor="ingName">Name</Label>
+                            <Input id="ingName" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Flour" />
+                        </div>
+                        <div className="space-y-1.5">
+                            <Label htmlFor="packQty">Pack qty</Label>
+                            <Input id="packQty" type="number" value={packQuantity} onChange={(e) => setPackQuantity(parseFloat(e.target.value))} />
+                        </div>
+                        <div className="space-y-1.5">
+                            <Label htmlFor="packUnit">Unit</Label>
+                            <NativeSelect id="packUnit" value={packUnit} onChange={(e) => setPackUnit(e.target.value)}>
+                                {UNITS.map((u) => <option key={u} value={u}>{u}</option>)}
+                            </NativeSelect>
+                        </div>
+                        <div className="space-y-1.5">
+                            <Label htmlFor="packCost">Pack cost (₹)</Label>
+                            <Input id="packCost" type="number" value={packCost} onChange={(e) => setPackCost(parseFloat(e.target.value))} />
+                        </div>
+                        <div className="space-y-1.5">
+                            <Label htmlFor="wastage">Wastage %</Label>
+                            <Input id="wastage" type="number" value={wastagePct} onChange={(e) => setWastagePct(parseFloat(e.target.value))} />
+                        </div>
+                        <Button type="submit" disabled={loading} className="lg:col-span-6 sm:w-auto sm:justify-self-start">
+                            {loading ? "Saving…" : "Add ingredient"}
+                        </Button>
+                    </form>
+                </CardContent>
+            </Card>
 
-            <div>
-                <h2 className="text-xl font-medium mb-3">List</h2>
-                <div className="overflow-x-auto">
-                    <table className="min-w-full text-sm">
-                        <thead>
-                            <tr className="text-left border-b">
-                                <th className="py-2 pr-4">Name</th>
-                                <th className="py-2 pr-4">Pack</th>
-                                <th className="py-2 pr-4">Cost</th>
-                                <th className="py-2 pr-4">Wastage %</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {items.map(i => (
-                                <tr key={i.id} className="border-b">
-                                    <td className="py-2 pr-4">{i.name}</td>
-                                    <td className="py-2 pr-4">{i.packQuantity} {i.packUnit}</td>
-                                    <td className="py-2 pr-4">{i.packCost}</td>
-                                    <td className="py-2 pr-4">{i.wastagePct}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            <Card>
+                <CardHeader>
+                    <CardTitle>All ingredients ({items.length})</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    {items.length === 0 ? (
+                        <p className="py-6 text-center text-sm text-muted-foreground">
+                            No ingredients yet. Add one above.
+                        </p>
+                    ) : (
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Name</TableHead>
+                                    <TableHead>Pack</TableHead>
+                                    <TableHead className="text-right">Cost (₹)</TableHead>
+                                    <TableHead className="text-right">Wastage %</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {items.map((i) => (
+                                    <TableRow key={i.id}>
+                                        <TableCell className="font-medium">{i.name}</TableCell>
+                                        <TableCell className="text-muted-foreground">{i.packQuantity} {i.packUnit}</TableCell>
+                                        <TableCell className="text-right">{i.packCost}</TableCell>
+                                        <TableCell className="text-right">{i.wastagePct}</TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    )}
+                </CardContent>
+            </Card>
         </div>
     );
 }
