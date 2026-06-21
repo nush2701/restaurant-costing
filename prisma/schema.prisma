@@ -1,0 +1,124 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id           String       @id @default(cuid())
+  email        String       @unique
+  name         String?
+  passwordHash String?
+  restaurants  Restaurant[]
+}
+
+model Restaurant {
+  id          String       @id @default(cuid())
+  name        String
+  ownerId     String
+  ingredients Ingredient[]
+  menuItems   MenuItem[]
+  recipes     Recipe[]
+  owner       User         @relation(fields: [ownerId], references: [id])
+}
+
+model Ingredient {
+  id             String                   @id @default(cuid())
+  restaurantId   String
+  name           String
+  packQuantity   Float
+  packUnit       Unit
+  packCost       Float
+  wastagePct     Float                    @default(0)
+  restaurant     Restaurant               @relation(fields: [restaurantId], references: [id])
+  priceVersions  IngredientPriceVersion[]
+  menuExtraLines MenuExtraLine[]
+  recipeLines    RecipeLine[]
+}
+
+model IngredientPriceVersion {
+  id            String     @id @default(cuid())
+  ingredientId  String
+  effectiveFrom DateTime
+  packCost      Float
+  ingredient    Ingredient @relation(fields: [ingredientId], references: [id])
+}
+
+model Recipe {
+  id              String               @id @default(cuid())
+  restaurantId    String
+  name            String
+  yieldQuantity   Float
+  yieldUnit       Unit
+  processLossPct  Float                @default(0)
+  menuExtraUsages MenuExtraLine[]      @relation("MenuExtraSubRecipe")
+  menuItems       MenuItem[]
+  restaurant      Restaurant           @relation(fields: [restaurantId], references: [id])
+  costSnapshots   RecipeCostSnapshot[]
+  lines           RecipeLine[]         @relation("RecipeLines")
+  subRecipeUsages RecipeLine[]         @relation("SubRecipe")
+}
+
+model RecipeLine {
+  id           String      @id @default(cuid())
+  recipeId     String
+  lineType     LineType
+  ingredientId String?
+  subRecipeId  String?
+  quantity     Float
+  unit         Unit
+  ingredient   Ingredient? @relation(fields: [ingredientId], references: [id])
+  recipe       Recipe      @relation("RecipeLines", fields: [recipeId], references: [id])
+  subRecipe    Recipe?     @relation("SubRecipe", fields: [subRecipeId], references: [id])
+}
+
+model MenuItem {
+  id           String          @id @default(cuid())
+  restaurantId String
+  name         String
+  recipeId     String
+  sellingPrice Float
+  extraLines   MenuExtraLine[]
+  recipe       Recipe          @relation(fields: [recipeId], references: [id])
+  restaurant   Restaurant      @relation(fields: [restaurantId], references: [id])
+}
+
+model MenuExtraLine {
+  id           String      @id @default(cuid())
+  menuItemId   String
+  ingredientId String?
+  subRecipeId  String?
+  quantity     Float
+  unit         Unit
+  ingredient   Ingredient? @relation(fields: [ingredientId], references: [id])
+  menuItem     MenuItem    @relation(fields: [menuItemId], references: [id])
+  subRecipe    Recipe?     @relation("MenuExtraSubRecipe", fields: [subRecipeId], references: [id])
+}
+
+model RecipeCostSnapshot {
+  id          String   @id @default(cuid())
+  recipeId    String
+  createdAt   DateTime @default(now())
+  costPerUnit Float
+  recipe      Recipe   @relation(fields: [recipeId], references: [id])
+}
+
+enum Unit {
+  G
+  KG
+  ML
+  L
+  PCS
+  TBSP
+  TSP
+  CUP
+}
+
+enum LineType {
+  INGREDIENT
+  SUBRECIPE
+}
