@@ -222,7 +222,10 @@ export async function buildCatalog(
       processLossPct: recipe.processLossPct ?? 0,
       lines: (recipe.lines ?? []).map((l) => ({
         type: l.lineType === "INGREDIENT" ? "ingredient" : "recipe",
-        refId: l.ingredientId ?? l.subRecipeId ?? "",
+        // Resolve the reference from lineType, not by coalescing: a SUBRECIPE
+        // line may also carry a stray ingredientId, and `ingredientId ?? subRecipeId`
+        // would then wrongly point a sub-recipe at an ingredient id.
+        refId: l.lineType === "INGREDIENT" ? (l.ingredientId ?? "") : (l.subRecipeId ?? ""),
         quantity: l.quantity,
         unit: l.unit,
       })),
