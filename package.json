@@ -10,6 +10,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "seed": "prisma db seed",
+    "restore": "tsx -r dotenv/config prisma/restore.ts",
     "postinstall": "prisma generate"
   },
   "dependencies": {
